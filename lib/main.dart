@@ -1,60 +1,64 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(MyApp());
+}
 
-class MyApp extends StatelessWidget {
+// MyApp is a StatefulWidget. This allows updating the state of the
+// widget when an item is removed.
+class MyApp extends StatefulWidget {
+  MyApp({Key key}) : super(key: key);
+
   @override
-  Widget build(BuildContext context) {
-    final appTitle = 'Form Validation Demo';
-
-    return MaterialApp(
-      title: appTitle,
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text(appTitle),
-        ),
-        body: MyCustomForm(),
-      ),
-    );
+  MyAppState createState() {
+    return MyAppState();
   }
 }
 
-class MyCustomForm extends StatefulWidget {
-  MyCustomForm({Key key}) : super(key: key);
+class MyAppState extends State<MyApp> {
+  final items = List<String>.generate(20, (i) => "Item ${i + 1}");
 
-  @override
-  _MyCustomFormState createState() => _MyCustomFormState();
-}
-
-class _MyCustomFormState extends State<MyCustomForm> {
-  final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          TextFormField(
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'please enter some text';
-              }
-              return null;
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: RaisedButton(onPressed: () {
-              if (_formKey.currentState.validate()) {
+    final title = 'Dismissing Items';
+
+    return MaterialApp(
+      title: title,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text(title),
+        ),
+        body: ListView.builder(
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+
+            return Dismissible(
+              // Each Dismissible must contain a Key. Keys allow Flutter to
+              // uniquely identify widgets.
+              key: Key(item),
+              // Provide a function that tells the app
+              // what to do after an item has been swiped away.
+              onDismissed: (direction) {
+                // Remove the item from the data source.
+                setState(() {
+                  items.removeAt(index);
+                });
+
+                // Then show a snackbar.
                 Scaffold.of(context)
-                    .showSnackBar(SnackBar(content: Text("Data processing")));
-              }
-            },
-            child: Text('Submit Data'),
-            ),
-          )
-        ],
+                    .showSnackBar(SnackBar(content: Text("$item dismissed")));
+              },
+              // Show a red background as the item is swiped away.
+              background: Container(color: Colors.red),
+              child: ListTile(title: Text('$item')),
+            );
+          },
+        ),
       ),
     );
   }
